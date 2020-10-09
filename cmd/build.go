@@ -115,7 +115,16 @@ func GenerateKustomizeResult(config opConfig.Config, kustomizeTemplate template.
 		return "", err
 	}
 
-	fqdn := yamlFile.GetValue("application.fqdn").Value
+	fqdn := ""
+	if yamlFile.GetValue("application.fqdn") != nil {
+		fqdn = yamlFile.GetValue("application.fqdn").Value
+	}
+	if yamlFile.GetValue("application.name") != nil {
+		fqdn = yamlFile.GetValue("application.name").Value
+	}
+	if fqdn == "" {
+		return "", errors.New("application.name empty")
+	}
 	cloudSettings, err := util.LoadDynamicYamlFromFile(filepath.Join(config.Spec.ManifestsRepo, "vars", "onepanel-config-map-hidden.env"))
 	if err != nil {
 		return "", err
