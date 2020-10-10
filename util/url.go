@@ -16,7 +16,10 @@ func GetWildCardDNS(url string) string {
 	return fmt.Sprintf("*.%v", url)
 }
 
-// GetFQDN figures out the sub-domain.domain value
+// GetFQDN figures out the sub-domain.domain value.
+// application.fqdn is checked for backwards compatibility.
+// Otherwise, application.name and application.domain are used to generate the FQDN.
+// Once a fqdn value is generated, it's set in the yamlFile for build and apply commands.
 func GetFQDN(yamlFile *DynamicYaml) (string, error) {
 	fqdn := ""
 	if yamlFile.GetValue("application.fqdn") != nil {
