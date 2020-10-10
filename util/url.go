@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -15,9 +16,33 @@ func GetWildCardDNS(url string) string {
 	return fmt.Sprintf("*.%v", url)
 }
 
+// GetFQDN figures out the sub-domain.domain value
+func GetFQDN(yamlFile *DynamicYaml) (string, error) {
+	fqdn := ""
+	if yamlFile.GetValue("application.fqdn") != nil {
+		fqdn = yamlFile.GetValue("application.fqdn").Value
+	}
+	if yamlFile.GetValue("application.name") != nil {
+		subDomain := yamlFile.GetValue("application.name").Value
+		if yamlFile.GetValue("application.domain") == nil {
+			return "", errors.New("application.domain empty")
+		}
+		domain := yamlFile.GetValue("application.domain").Value
+		fqdn = subDomain + "." + domain
+		yamlFile.Put("application.fqdn", fqdn)
+	}
+	if fqdn == "" {
+		return "", errors.New("application.name empty")
+	}
+	return fqdn, nil
+}
+
 func GetDeployedWebURL(yamlFile *DynamicYaml) (string, error) {
 	httpScheme := "http://"
-	fqdn := yamlFile.GetValue("application.fqdn").Value
+	fqdn, err := GetFQDN(yamlFile)
+	if err != nil {
+		return "", err
+	}
 	fqdnExtra := ""
 
 	insecure, err := strconv.ParseBool(yamlFile.GetValue("application.insecure").Value)

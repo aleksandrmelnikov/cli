@@ -188,7 +188,11 @@ func GetClusterIp(url string) {
 	if yamlFile.HasKey("application.provider") {
 		provider := yamlFile.GetValue("application.provider").Value
 		if provider == "minikube" || provider == "microk8s" {
-			fqdn := yamlFile.GetValue("application.fqdn").Value
+			fqdn, err := GetFQDN(yamlFile)
+			if err != nil {
+				fmt.Printf("[error] Unable to get FQDN value: %v", err.Error())
+				return
+			}
 
 			hostsPath := "/etc/hosts"
 			if runtime.GOOS == "windows" {
